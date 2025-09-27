@@ -1,6 +1,12 @@
 #include <stdio.h>
 #include <string.h>
 
+void debug(const char* input){
+const char* text = input + 5;
+while(*text == ''){
+text++;}
+printf("%s\n", input + 5);}
+
 int main() {
 char input[100];
 while(1)
@@ -22,9 +28,13 @@ break;}
 if(strcmp(input, "echo" ) == 0){
 printf("123\n");
 break;}
-
-
+if(strncmp(input, "debug", 5)= 0) {
+debug(input);}
+else{
 printf("%s: command not found\n",input);
+}
 }
 return 0;
 }
+
+
