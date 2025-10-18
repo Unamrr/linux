@@ -56,7 +56,7 @@ read_history(HISTORY_FILE);
 printf("Kubsh started.\n");
     char *input;
 while(true){
-input = readline("$");
+input = readline("$ ");
 if(signal_received){
 signal_received=0;
 return 0;}
@@ -72,23 +72,16 @@ else if(strcmp(input, "\\q")== 0){
 printf("exit from programm\n");
 free(input);
 break;}
-else if(strcmp(input, "\\e $PATH")== 0){
-print_path();}
+else if(strncmp(input, "\\e $PATH")== 0){
+const char* var_name = input + 4;
+while(*var_name == ' ') var_name++;
+print_env_var(var_name);}
 else if(strncmp(input, "debug", 5) == 0){
 debug(input);}
 else{printf("%s: command not found\n", input);}
 free(input);
-
-
-debug(input);
-
-}if else{printf("%s:command not founds\n", input);}
-free(input);}
-
+}
 write_history(HISTORY_FILE);
-
-
-
 return 0;
 }
 
