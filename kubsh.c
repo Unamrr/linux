@@ -1,40 +1,131 @@
-#include <stdio.h>
-#include <string.h>
 
-void debug(const char* input){
-const char* text = input + 5;
-while(*text == ''){
-text++;}
-printf("%s\n", input + 5);}
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <string.h>
+#include <signal.h>
+
+#include<readline/readline.h>
+#include<readline/history.h>
+#define HISTORY_FILE ".kubsh_history"
+sig_atomic_t signal_received = 0;
+
+void debug( char* line){
+printf("%s/n", line);}
+
+void sig_handler(int signum){
+signal_received = signum;
+printf("Configuration reloaded");}
+
+void print_env_var(const char *var_name){
+if(var_name == NULL || strlen(var_name)== 0){
+printf("Usage: \\e $VARNAME\n");
+return;}
+
+if(var_name[0] == '$'){var_name++;}
+
+const char *value = getenv(var_name);
+if(value==NULL){
+printf("Variable '%s' not found.\n", var_name);
+return;
+}
+char *copy=strdup(value);
+if(!copy){
+perror("strdup");
+return;}
+
+printf("%s = \n", var_name);
+
+char*token= strtok(copy, ":");
+if(token && strchr(value, ':')){
+while(token!=NULL){
+printf("-%s\n", token);
+token=strtok(NULL, ":");
+
+}}else { printf("%s\n",copy);
+}free(copy);
+}
 
 int main() {
-char input[100];
-while(1)
-{
-printf("$");
 
-if(fgets(input, 100, stdin)== NULL){
-printf("\nExit Cntr+D\n");
-break;
-}
-input[strlen(input) - 1] = '\0';
 
+signal(SIGTSTP, sig_handler);
+read_history(HISTORY_FILE);
+
+printf("Kubsh started.\n");
+    char *input;
+while(true){
+input = readline("$");
+if(signal_received){
+signal_received=0;
+return 0;}
+if(input== NULL){
+break;}
+
+add_history(input);
 if(strcmp(input, "exit" ) == 0){
 printf("exit from programm\n");
+free(input);
 break;}
-if(strcmp(input, "\\q" ) == 0){
-printf("exit from programm\\q\n");
+else if(strcmp(input, "\\q")== 0){
+printf("exit from programm\n");
+free(input);
 break;}
-if(strcmp(input, "echo" ) == 0){
-printf("123\n");
-break;}
-if(strncmp(input, "debug", 5)= 0) {
+else if(strcmp(input, "\\e $PATH")== 0){
+print_path();}
+else if(strncmp(input, "debug", 5) == 0){
 debug(input);}
-else{
-printf("%s: command not found\n",input);
-}
-}
+else{printf("%s: command not found\n", input);}
+free(input);
+
+
+debug(input);
+
+}if else{printf("%s:command not founds\n", input);}
+free(input);}
+
+write_history(HISTORY_FILE);
+
+
+
 return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
