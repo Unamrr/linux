@@ -1,0 +1,176 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <unistd.h>
+#include <signal.h>
+#include <sys/wait.h>
+#include <readline/readline.h>
+#include <readline/history.h>
+
+#define HISTORY_FILE ".kubsh_history"
+#define MAX_ARGS 64
+
+sig_atomic_t signal_received = 0;
+
+// Пункт 9: Обработчик сигнала SIGHUP
+void sig_handler(int signum) {
+    signal_received = signum;
+    printf("\nConfiguration reloaded\n");
+}
+
+// Пункт 7: Вывод переменной окружения
+void print_env_var(const char *var_name) {
+    if (var_name == NULL || strlen(var_name) == 0) {
+        printf("Usage: \\e $VARNAME\n");
+        return;
+    }
+
+    if (var_name[0] == '$') {
+        var_name++;
+    }
+
+    const char *value = getenv(var_name);
+    if (value == NULL) {
+        printf("Variable '%s' not found.\n", var_name);
+        return;
+    }
+
+    printf("%s = ", var_name);
+
+    char *copy = strdup(value);
+    if (!copy) {
+        perror("strdup");
+        return;
+    }
+
+    if (strchr(value, ':') != NULL) {
+        printf("\n");
+        char *token = strtok(copy, ":");
+        while (token != NULL) {
+            printf("  - %s\n", token);
+            token = strtok(NULL, ":");
+        }
+    } else {
+        printf("%s\n", copy);
+    }
+    free(copy);
+}
+
+// Пункт 5: Команда echo
+void handle_echo(char *args) {
+    if (args == NULL || strlen(args) == 0) {
+        printf("\n");
+        return;
+    }
+    
+    char *text = args + 4;
+    while (*text == ' ') text++;
+    
+    if ((text[0] == '"' && text[strlen(text)-1] == '"') ||
+        (text[0] == '\'' && text[strlen(text)-1] == '\'')) {
+        text[strlen(text)-1] = '\0';
+        text++;
+    }
+    
+    printf("%s\n", text);
+}
+
+// Пункт 8: Выполнение команды
+void execute_command(char *input) {
+    char *args[MAX_ARGS];
+    int i = 0;
+    
+    char *input_copy = strdup(input);
+    char *token = strtok(input_copy, " ");
+    
+    while (token != NULL && i < MAX_ARGS - 1) {
+        args[i++] = token;
+        token = strtok(NULL, " ");
+    }
+    args[i] = NULL;
+    
+    if (args[0] == NULL) {
+        free(input_copy);
+        return;
+    }
+    
+    pid_t pid = fork();
+    if (pid == 0) {
+        // Дочерний процесс
+        execvp(args[0], args);
+        printf("%s: command not found\n", args[0]);
+        exit(EXIT_FAILURE);
+    } else if (pid > 0) {
+        // Родительский процесс
+        int status;
+        waitpid(pid, &status, 0);
+    } else {
+        perror("fork");
+    }
+    
+    free(input_copy);
+}
+
+int main() {
+    // Пункт 9: Правильный сигнал - SIGHUP
+    signal(SIGHUP, sig_handler);
+    
+    // Пункт 4: История команд
+    using_history();
+    read_history(HISTORY_FILE);
+
+    printf("Kubsh started. Type 'exit' or '\\q' to quit.\n");
+    
+    char *input;
+    while (true) {
+        input = readline("$ ");
+        
+        if (signal_received) {
+            signal_received = 0;
+        }
+        
+        // Пункт 2: Выход по Ctrl+D
+        if (input == NULL) {
+            printf("\n");
+            break;
+        }
+        
+        // Пропускаем пустые строки
+        if (strlen(input) == 0) {
+            free(input);
+            continue;
+        }
+        
+        // Пункт 4: Добавление в историю
+        add_history(input);
+        
+        // Пункт 3: Команда выхода
+        if (strcmp(input, "exit") == 0 || strcmp(input, "\\q") == 0) {
+            printf("Exiting kubsh.\n");
+            free(input);
+            break;
+        }
+        // Пункт 5: Команда echo
+        else if (strncmp(input, "echo", 4) == 0) {
+            handle_echo(input);
+        }
+        // Пункт 7: Вывод переменной окружения
+        else if (strncmp(input, "\\e", 2) == 0) {
+            char *var_name = input + 2;
+            while (*var_name == ' ') var_name++;
+            print_env_var(var_name);
+        }
+        // Пункт 8: Выполнение команды
+        // Пункт 6: Проверка команды
+        else {
+            execute_command(input);
+        }
+        
+        free(input);
+    }
+    
+    // Пункт 4: Сохранение истории
+    write_history(HISTORY_FILE);
+    return 0;
+}
