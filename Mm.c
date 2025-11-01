@@ -365,3 +365,203 @@ int main() {
     return 0;
 }
 // === КОНЕЦ ВСТАВКИ ===
+
+
+
+
+
+
+
+#define FUSE_USE_VERSION 31
+#define MAX_USERS 1000
+#include <fuse3/fuse.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <dirent.h>
+#include <sys/types.h>
+#include <pwd.h>
+#include <errno.h>
+#include <sys/stat.h>
+#include <sys/wait.h>
+#include <fcntl.h>
+#include <signal.h>
+
+static int vfs_pid = -1;
+
+// === ВСТАВКА: Добавил структуру для пользователей ===
+typedef struct {
+    char name[256];
+    uid_t uid;
+    char home[1024];
+    char shell[1024];
+} user_info_t;
+
+static user_info_t *users_list = NULL;
+static int users_count = 0;
+
+int get_users_list() {
+    // === ВСТАВКА: Минимальная реализация ===
+    users_count = 1;
+    users_list = malloc(sizeof(user_info_t));
+    strcpy(users_list[0].name, "testuser");
+    users_list[0].uid = 1000;
+    strcpy(users_list[0].home, "/home/testuser");
+    strcpy(users_list[0].shell, "/bin/bash");
+    return 1;
+}
+
+void free_users_list() {
+    // === ВСТАВКА: Освобождение памяти ===
+    if (users_list) free(users_list);
+    users_list = NULL;
+    users_count = 0;
+}
+
+static int users_readdir(
+    const char *path, 
+    void *buf, 
+    fuse_fill_dir_t filler,
+    off_t offset,
+    struct fuse_file_info *fi,
+    enum fuse_readdir_flags flags
+) {
+    // === ВСТАВКА: Базовая реализация ===
+    filler(buf, ".", NULL, 0, 0);
+    filler(buf, "..", NULL, 0, 0);
+    
+    if (strcmp(path, "/") == 0) {
+        for (int i = 0; i < users_count; i++) {
+            filler(buf, users_list[i].name, NULL, 0, 0);
+        }
+    } else {
+        filler(buf, "id", NULL, 0, 0);
+        filler(buf, "home", NULL, 0, 0);
+        filler(buf, "shell", NULL, 0, 0);
+    }
+    return 0;
+}
+
+static int users_open(const char *path, struct fuse_file_info *fi) {
+    return 0;
+}
+
+static int users_read(
+    const char *path, 
+    char *buf, 
+    size_t size,
+    off_t offset,
+    struct fuse_file_info *fi
+) {
+    // === ВСТАВКА: Базовая реализация ===
+    char content[256];
+    snprintf(content, sizeof(content), "test content\n");
+    
+    if (offset >= strlen(content)) return 0;
+    if (offset + size > strlen(content)) size = strlen(content) - offset;
+    
+    memcpy(buf, content + offset, size);
+    return size;
+}
+
+static int users_getattr(const char *path, struct stat *stbuf,
+                         struct fuse_file_info *fi) {
+    // === ВСТАВКА: Базовая реализация ===
+    memset(stbuf, 0, sizeof(struct stat));
+    
+    if (strcmp(path, "/") == 0) {
+        stbuf->st_mode = S_IFDIR | 0755;
+        stbuf->st_nlink = 2;
+    } else {
+        stbuf->st_mode = S_IFREG | 0644;
+        stbuf->st_nlink = 1;
+        stbuf->st_size = 1024;
+    }
+    return 0;
+}
+
+static int users_mkdir(const char *path, mode_t mode) {
+    // === ВСТАВКА: Основная логика - создание пользователя ===
+    printf("CREATE USER: %s\n", path);
+    
+    // Извлекаем имя пользователя из пути
+    char username[256];
+    if (sscanf(path, "/%255s", username) == 1) {
+        // Создаем команду для adduser
+        char command[512];
+        snprintf(command, sizeof(command), "sudo adduser --disabled-password --gecos '' %s", username);
+        
+        // Выполняем команду
+        int result = system(command);
+        if (result == 0) {
+            printf("User %s created successfully\n", username);
+            return 0;
+        }
+    }
+    return -EPERM;
+}
+
+// === ВСТАВКА: Добавил функцию удаления ===
+static int users_rmdir(const char *path) {
+    printf("DELETE USER: %s\n", path);
+    
+    char username[256];
+    if (sscanf(path, "/%255s", username) == 1) {
+        char command[256];
+        snprintf(command, sizeof(command), "sudo userdel -r %s", username);
+        
+        int result = system(command);
+        if (result == 0) {
+            printf("User %s deleted successfully\n", username);
+            return 0;
+        }
+    }
+    return -EPERM;
+}
+
+static struct fuse_operations users_oper = {
+    .getattr = users_getattr,
+    .open = users_open,
+    .read = users_read,
+    .readdir = users_readdir,
+    .mkdir = users_mkdir,
+    // === ВСТАВКА: Добавил rmdir ===
+    .rmdir = users_rmdir,
+};
+
+int start_users_vfs(const char *mount_point) {
+    int pid = fork();    
+    if (pid == 0) {
+        char *fuse_argv[] = {
+            "users_vfs",
+            "-f",
+            "-s", 
+            (char*)mount_point,
+            NULL
+        };
+        
+        if (get_users_list() <= 0) {
+            fprintf(stderr, "Не удалось получить список пользователей\n");
+            exit(1);
+        }
+        
+        int ret = fuse_main(4, fuse_argv, &users_oper, NULL);
+        
+        free_users_list();
+        exit(ret);
+    } else {
+        vfs_pid = pid;
+        printf("VFS запущена в процессе %d, монтирована в %s\n", pid, mount_point);
+        return 0;
+    }
+}
+
+void stop_users_vfs() {
+    if (vfs_pid != -1) {
+        kill(vfs_pid, SIGTERM);
+        waitpid(vfs_pid, NULL, 0);
+        vfs_pid = -1;
+        printf("VFS остановлена\n");
+    }
+}
