@@ -15,3 +15,25 @@ Dockerfile.build:1
 ERROR: failed to solve: DeadlineExceeded: DeadlineExceeded: DeadlineExceeded: debian:bullseye: failed to resolve source metadata for docker.io/library/debian:bullseye: failed to authorize: DeadlineExceeded: failed to fetch anonymous token: Get "https://auth.docker.io/token?scope=repository%3Alibrary%2Fdebian%3Apull&service=registry.docker.io": dial tcp 98.83.53.163:443: i/o timeout
 user@user-VirtualBox:~/docker$ 
 
+463463673737
+
+ 
+ user@user-VirtualBox:~/docker$ docker run -v $(pwd):/opt kubsh_image
+/docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
+/docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
+10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
+10-listen-on-ipv6-by-default.sh: info: Enabled listen on IPv6 in /etc/nginx/conf.d/default.conf
+/docker-entrypoint.sh: Sourcing /docker-entrypoint.d/15-local-resolvers.envsh
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
+/docker-entrypoint.sh: Configuration complete; ready for start up
+2025/11/22 10:52:19 [notice] 1#1: using the "epoll" event method
+2025/11/22 10:52:19 [notice] 1#1: nginx/1.29.3
+2025/11/22 10:52:19 [notice] 1#1: built by gcc 14.2.0 (Debian 14.2.0-19) 
+2025/11/22 10:52:19 [notice] 1#1: OS: Linux 6.8.0-45-generic
+2025/11/22 10:52:19 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2025/11/22 10:52:19 [notice] 1#1: start worker processes
+2025/11/22 10:52:19 [notice] 1#1: start worker process 29
+2025/11/22 10:52:19 [notice] 1#1: start worker process 30
+^C2025/11/22 10:52:54 [notice] 1#1: signal 2 (SIGINT) received, exiting
