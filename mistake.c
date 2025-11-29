@@ -81,5 +81,10 @@ user@user-VirtualBox:~/docker$ docker run kubsh_image
 2025/11/29 10:07:01 [notice] 1#1: start worker process 30
 2025/11/29 10:07:21 [notice] 1#1: signal 28 (SIGWINCH) received
 
+user@user-VirtualBox:~/docker$ docker network ls
+NETWORK ID     NAME      DRIVER    SCOPE
+69eac7d728f0   bridge    bridge    local
+880dad800780   host      host      local
+a3decffe3f3d   none      null      local
 
 
