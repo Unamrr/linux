@@ -87,4 +87,16 @@ NETWORK ID     NAME      DRIVER    SCOPE
 880dad800780   host      host      local
 a3decffe3f3d   none      null      local
 
+user@user-VirtualBox:~/docker$ docker run --rm busybox ping -c 3 8.8.8.8
+Unable to find image 'busybox:latest' locally
+latest: Pulling from library/busybox
+e59838ecfec5: Pull complete 
+Digest: sha256:e3652a00a2fabd16ce889f0aa32c38eec347b997e73bd09e69c962ec7f8732ee
+Status: Downloaded newer image for busybox:latest
+PING 8.8.8.8 (8.8.8.8): 56 data bytes
+
+--- 8.8.8.8 ping statistics ---
+3 packets transmitted, 0 packets received, 100% packet loss
+
+
 
