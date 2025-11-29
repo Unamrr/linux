@@ -99,4 +99,15 @@ PING 8.8.8.8 (8.8.8.8): 56 data bytes
 3 packets transmitted, 0 packets received, 100% packet loss
 
 
-
+user@user-VirtualBox:~/docker$ docker build -f Dockerfile.build -t kubsh_image . --network=host
+[+] Building 0.1s (5/5) FINISHED                                                                                                                                                                                               docker:default
+ => [internal] load build definition from Dockerfile.build                                                                                                                                                                               0.0s
+ => => transferring dockerfile: 70B                                                                                                                                                                                                      0.0s
+ => [internal] load metadata for docker.io/library/hello-world:latest                                                                                                                                                                    0.0s
+ => [internal] load .dockerignore                                                                                                                                                                                                        0.0s
+ => => transferring context: 2B                                                                                                                                                                                                          0.0s
+ => CACHED [1/1] FROM docker.io/library/hello-world:latest                                                                                                                                                                               0.0s
+ => exporting to image                                                                                                                                                                                                                   0.0s
+ => => exporting layers                                                                                                                                                                                                                  0.0s
+ => => writing image sha256:d8b02de37449f92e6b735b204ace6c1af1259aadb47c3f5f5a9865479b4e79ac                                                                                                                                             0.0s
+ => => naming to docker.io/library/kubsh_image                                           
