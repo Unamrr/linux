@@ -53,3 +53,10 @@ Dockerfile.build:1
    3 |     RUN apt-get update && apt-get install -y --no-install-recommends gcc make libfuse3-dev libreadline-dev
 --------------------
 ERROR: failed to solve: DeadlineExceeded: DeadlineExceeded: DeadlineExceeded: debian: failed to resolve source metadata for docker.io/library/debian:latest: failed to authorize: DeadlineExceeded: failed to fetch anonymous token: Get "https://auth.docker.io/token?scope=repository%3Alibrary%2Fdebian%3Apull&service=registry.docker.io": dial tcp 54.236.114.2:443: i/o timeout
+************************
+user@user-VirtualBox:~/docker$ docker images
+REPOSITORY    TAG       IMAGE ID       CREATED       SIZE
+kubsh_image   latest    a3561f55db7b   2 weeks ago   152MB
+mynginx       latest    a3561f55db7b   2 weeks ago   152MB
+nginx         latest    d261fd19cb63   3 weeks ago   152MB
+hello-world   latest    d2c94e258dcb   2 years ago   13.3kB
