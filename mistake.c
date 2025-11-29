@@ -37,3 +37,19 @@ user@user-VirtualBox:~/docker$
 2025/11/22 10:52:19 [notice] 1#1: start worker process 29
 2025/11/22 10:52:19 [notice] 1#1: start worker process 30
 ^C2025/11/22 10:52:54 [notice] 1#1: signal 2 (SIGINT) received, exiting
+**************************
+user@user-VirtualBox:~/docker$ docker build -f Dockerfile.build -t kubsh_image .
+[+] Building 31.0s (2/2) FINISHED                                docker:default
+ => [internal] load build definition from Dockerfile.build                 0.0s
+ => => transferring dockerfile: 176B                                       0.0s
+ => ERROR [internal] load metadata for docker.io/library/debian:latest    30.9s
+------
+ > [internal] load metadata for docker.io/library/debian:latest:
+------
+Dockerfile.build:1
+--------------------
+   1 | >>> FROM debian
+   2 |     
+   3 |     RUN apt-get update && apt-get install -y --no-install-recommends gcc make libfuse3-dev libreadline-dev
+--------------------
+ERROR: failed to solve: DeadlineExceeded: DeadlineExceeded: DeadlineExceeded: debian: failed to resolve source metadata for docker.io/library/debian:latest: failed to authorize: DeadlineExceeded: failed to fetch anonymous token: Get "https://auth.docker.io/token?scope=repository%3Alibrary%2Fdebian%3Apull&service=registry.docker.io": dial tcp 54.236.114.2:443: i/o timeout
